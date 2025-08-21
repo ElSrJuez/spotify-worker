@@ -1,3 +1,0 @@
-# llm-local requirements
-openai
-# foundry_local is a local import, not a pip package

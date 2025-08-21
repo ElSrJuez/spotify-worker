@@ -20,11 +20,32 @@
 import openai
 import logging
 import time
+import sys
+import os
 from .config import LLM_ENDPOINT, LLM_API_KEY, LLM_ALIAS, LLM_VARIANT, DEFAULT_META_PROMPT, LLM_LOG_PATH, LLM_BACKEND, LLM_LOG_LEVEL, LLM_MAX_TOKENS
+
 
 _client = None
 _model = None
 _meta_prompt = None
+
+# Setup logging to both file and console, and ensure log file path is valid
+def _setup_logging():
+	log_path = LLM_LOG_PATH or 'llmlocal/llm.log'
+	log_level = (LLM_LOG_LEVEL or 'INFO').strip().upper()
+	log_dir = os.path.dirname(log_path)
+	if log_dir and not os.path.exists(log_dir):
+		os.makedirs(log_dir, exist_ok=True)
+	log_handlers = [logging.StreamHandler(sys.stdout)]
+	if log_path:
+		log_handlers.append(logging.FileHandler(log_path, encoding='utf-8'))
+	logging.basicConfig(
+		level=getattr(logging, log_level, logging.INFO),
+		format='%(asctime)s %(levelname)s %(message)s',
+		handlers=log_handlers
+	)
+
+_setup_logging()
 
 def _init_llm():
 	# --- REVIEW: This function assumes FoundryLocalManager and foundry_local are available if LLM_BACKEND is set accordingly.
@@ -38,20 +59,26 @@ def _init_llm():
 	global _client, _model, _meta_prompt
 	if _client is not None and _model is not None and _meta_prompt is not None:
 		return
-	if LLM_BACKEND.strip().lower() == "foundrylocalmanager":
+	backend = (LLM_BACKEND or '').strip().lower()
+	alias = LLM_ALIAS or 'phi-3.5-mini'
+	variant = LLM_VARIANT or 'instruct-cuda-gpu'
+	endpoint = LLM_ENDPOINT or 'http://localhost:5273/v1'
+	api_key = LLM_API_KEY or ''
+	meta_prompt = DEFAULT_META_PROMPT or ''
+	if backend == "foundrylocalmanager":
 		try:
 			from foundry_local import FoundryLocalManager
 		except ImportError:
-			# --- REVIEW: This will break if foundry_local is not installed. Consider fallback or clearer error for portability.
 			raise ImportError("foundry_local package is required for FoundryLocalManager backend.")
-		manager = FoundryLocalManager(LLM_ALIAS)
+		manager = FoundryLocalManager(alias)
 		_client = openai.OpenAI(base_url=manager.endpoint, api_key=manager.api_key)
-		_model = manager.get_model_info(LLM_ALIAS).id
-		_meta_prompt = DEFAULT_META_PROMPT
+		model_info = manager.get_model_info(alias)
+		_model = model_info.id if model_info else f"{alias}-{variant}"
+		_meta_prompt = meta_prompt
 	else:
-		_client = openai.OpenAI(base_url=LLM_ENDPOINT, api_key=LLM_API_KEY)
-		_model = f"{LLM_ALIAS}-{LLM_VARIANT}"
-		_meta_prompt = DEFAULT_META_PROMPT
+		_client = openai.OpenAI(base_url=endpoint, api_key=api_key)
+		_model = f"{alias}-{variant}"
+		_meta_prompt = meta_prompt
 
 def set_meta_prompt(prompt):
 	"""
@@ -88,16 +115,14 @@ def llm_complete(messages, system_prompt=None, **kwargs):
 	payload_count = len(msgs)
 	# Always pass max_tokens from config to the OpenAI API call, do not inject into kwargs
 	# Step-by-step, readable logging for all major steps (all levels), and JSONL payloads at DEBUG
-	import os
-	# --- REVIEW: This will fail if LLM_LOG_PATH is not set or is not a valid path.
-	# - os.makedirs may fail if the directory is not writable or does not exist.
-	os.makedirs(os.path.dirname(LLM_LOG_PATH), exist_ok=True)
+	log_path = LLM_LOG_PATH or 'llmlocal/llm.log'
 	def log_to_file(msg):
 		try:
-			with open(LLM_LOG_PATH, 'a', encoding='utf-8') as f:
-				f.write(msg + '\n')
+			if log_path:
+				with open(log_path, 'a', encoding='utf-8') as f:
+					f.write(msg + '\n')
 		except Exception as e:
-			logging.error(f"Failed to write LLM log to {LLM_LOG_PATH}: {e}")
+			logging.error(f"Failed to write LLM log to {log_path}: {e}")
 
 	# 1. Prompt preparation
 	# --- REVIEW: Logging and prompt handling are tightly coupled to config and file system.
@@ -137,7 +162,8 @@ def llm_complete(messages, system_prompt=None, **kwargs):
 
 	# DEBUG: log full request payload as single-line JSONL
 	# --- REVIEW: Uses json and logs full payloads; may expose sensitive data if not careful.
-	if LLM_LOG_LEVEL.strip().upper() == "DEBUG":
+	log_level = (LLM_LOG_LEVEL or 'INFO').strip().upper()
+	if log_level == "DEBUG":
 		import json
 		request_payload = {
 			'endpoint': LLM_ENDPOINT,
@@ -172,7 +198,7 @@ def llm_complete(messages, system_prompt=None, **kwargs):
 		log_to_file(resp_msg)
 
 		# DEBUG: log full response payload as single-line JSONL
-		if LLM_LOG_LEVEL.strip().upper() == "DEBUG":
+		if log_level == "DEBUG":
 			import json
 			response_payload = {
 				'elapsed': elapsed,
@@ -181,14 +207,17 @@ def llm_complete(messages, system_prompt=None, **kwargs):
 			}
 			log_to_file('[LLM DEBUG] RESPONSE PAYLOAD: ' + json.dumps(response_payload, ensure_ascii=False))
 
-		if LLM_LOG_LEVEL.strip().upper() != "DEBUG":
+		if log_level != "DEBUG":
 			logging.info("[LLM] Request sent: endpoint=%s, model=%s, message_count=%d, payload_chars=%d", LLM_ENDPOINT, _model, payload_count, payload_len)
 			logging.info("[LLM] Response received: elapsed=%.2fs, response_chars=%d", elapsed, resp_len)
 		return resp_content
 	except Exception as e:
+		import traceback
+		tb = traceback.format_exc()
 		err_msg = (
 			f"[LLM STEP 5: ERROR]"
 			f"\nException occurred during LLM request: {e}"
+			f"\nTraceback:\n{tb}"
 			f"\n{'='*40}"
 		)
 		logging.error(err_msg)

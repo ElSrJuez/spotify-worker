@@ -61,17 +61,30 @@ class SpotifyAPI:
 			logging.error(f"Spotify authentication failed: {e}")
 			raise
 
+
 	def create_playlist(self, user_id, name, description=""):
-		return self.sp.user_playlist_create(user=user_id, name=name, description=description)
+		logging.info(f"[SpotifyAPI] Creating playlist for user_id={user_id}, name='{name}', description='{description}'")
+		playlist = self.sp.user_playlist_create(user=user_id, name=name, description=description)
+		logging.info(f"[SpotifyAPI] Created playlist: {playlist}")
+		return playlist
 
 	def add_tracks_to_playlist(self, playlist_id, track_ids):
-		return self.sp.playlist_add_items(playlist_id, track_ids)
+		logging.info(f"[SpotifyAPI] Adding tracks to playlist_id={playlist_id}, track_ids={track_ids}")
+		result = self.sp.playlist_add_items(playlist_id, track_ids)
+		logging.info(f"[SpotifyAPI] Add tracks result: {result}")
+		return result
 
 	def search_tracks(self, query, limit=10):
+		logging.info(f"[SpotifyAPI] Searching tracks with query='{query}', limit={limit}")
 		results = self.sp.search(q=query, type='track', limit=limit)
-		return results['tracks']['items']
+		items = results['tracks']['items']
+		logging.info(f"[SpotifyAPI] Found {len(items)} tracks for query='{query}'")
+		return items
 
 	def get_user_playlists(self, user_id):
-		return self.sp.user_playlists(user_id)
+		logging.info(f"[SpotifyAPI] Getting playlists for user_id={user_id}")
+		playlists = self.sp.user_playlists(user_id)
+		logging.info(f"[SpotifyAPI] Retrieved playlists: {playlists}")
+		return playlists
 
 	# Add more methods as needed for your use case

@@ -31,8 +31,10 @@ except Exception as e:
 # AI Playlist config (optional, but load if present)
 AI_PLAYLIST_PREFIX = config.get('AIPlayList', 'playlist_prefix')
 
+
 # Google Search API config (no fallbacks, fail if missing)
 try:
 	GOOGLE_SEARCH_API_KEY = config.get('SearchAPI', 'GoogleSearchAPIKey')
+	GOOGLE_CSE_ID = config.get('SearchAPI', 'GoogleCSEID')
 except Exception as e:
 	raise RuntimeError(f"Missing required Google Search API config: {e}")

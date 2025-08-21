@@ -1,17 +1,25 @@
 # Logging configuration (optional)
 [logging]
-# Level can be DEBUG, INFO, WARNING, ERROR, CRITICAL
 level = INFO
-# Optional log file path (leave blank for console only)
 file =
+
 [spotify]
 # Spotify API credentials (do not commit your real secrets)
-client_id = 
-client_secret = 
-redirect_uri = 
+client_id =
+client_secret =
+redirect_uri =
 # Space-separated list of permissions
-scope = playlist-modify-public playlist-modify-private playlist-read-private user-read-private
-token_cache = cache/.spotify_token_cache
+scope =
+token_cache =
+
+[AIPlayList]
+playlist_prefix =
+playlist_llm_meta_prompt =
+
+[SearchAPI]
+GoogleSearchAPIKey =
+GoogleCSEID =
+
 # App info (for reference, not used by code)
 # app_name = My Playlist Worker
 # app_description = Internal custom logic for creating and editing playlists

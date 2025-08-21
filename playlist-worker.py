@@ -1,5 +1,3 @@
-
-
 """
 Playlist Worker: Menu-based CLI for playlist management.
 All actual Spotify API calls are delegated to the SpotifyAPI utility (src/api.py).
@@ -19,12 +17,14 @@ No direct Spotify API logic or implementation in this file.
 
 from src import db
 from src.api import SpotifyAPI
+from util.moodyplaylist import create_moody_playlist
+import os
 
 def print_menu():
 	print("\nSpotify Playlist Worker")
 	print("1. List my playlists")
-	print("2. Create a new playlist")
-	print("3. Add tracks to a playlist")
+	print("2. Create a new Moody playlist")
+	print("3. Add Moody tracks to a playlist")
 	print("4. Search for tracks")
 	print("5. Exit")
 
@@ -44,10 +44,27 @@ def main():
 				print(f"{idx}. {pl['name']} (ID: {pl['id']})")
 
 		elif choice == '2':
-			name = input("Playlist name: ").strip()
-			desc = input("Description (optional): ").strip()
-			playlist = api.create_playlist(user_id, name, description=desc)
-			print(f"Created playlist: {playlist['name']} (ID: {playlist['id']})")
+			print("\n[Moody Playlist Creation]")
+			mood_prompt = input("Enter a mood, theme, or idea for your playlist: ").strip()
+			# List available thoughts files
+			thoughts_dir = os.path.join(os.path.dirname(__file__), 'playlist-thoughts', 'thoughts')
+			thoughts_files = [f for f in os.listdir(thoughts_dir) if f.endswith('.md')]
+			thoughts_file = None
+			if thoughts_files:
+				print("Available thoughts files:")
+				for idx, fname in enumerate(thoughts_files, 1):
+					print(f"  {idx}. {fname}")
+				sel = input("Select a thoughts file by number (or press Enter to skip): ").strip()
+				if sel.isdigit() and 1 <= int(sel) <= len(thoughts_files):
+					thoughts_file = os.path.join(thoughts_dir, thoughts_files[int(sel)-1])
+			try:
+				result = create_moody_playlist(mood_prompt, thoughts_file)
+				print(f"\n[Moody Playlist Created]")
+				print(f"Name: {result['playlist_name']}")
+				print(f"Tracks added: {result['track_count']}")
+				print(f"Playlist ID: {result['playlist_id']}")
+			except Exception as e:
+				print(f"Error creating moody playlist: {e}")
 
 		elif choice == '3':
 			playlist_id = input("Playlist ID: ").strip()

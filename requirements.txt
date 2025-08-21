@@ -5,4 +5,4 @@ dotenv
 
 # Hierarchical requirements
 -r src/requirements.txt
--r llm-local/requirements.txt
+-r llmlocal/requirements.txt
