@@ -1,3 +1,5 @@
+# LLM logs
+llm_log.txt
 # Ignore all cache files except .gitkeep
 cache/*
 !cache/.gitkeep
