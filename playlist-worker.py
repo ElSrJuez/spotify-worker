@@ -6,6 +6,17 @@ All actual Spotify API calls are delegated to the SpotifyAPI utility (src/api.py
 No direct Spotify API logic or implementation in this file.
 """
 
+# for Create a Playlist menu item, it asks the user for mood or idea prompt, it offers available thoughts files to optionally add to the context and based on this it:
+# (always leveraging util\moody-playlist.py, src\api.py and src\google-api.py respectively)
+# 1. creates and then submits a google search prompt object
+# 2. the search result is shortened/made efficient for LLM usage
+# 2.1 also normalizes for LLM the selected thoughts file
+# 3 creates an efficient context combining the user mood prompt, the normalized search results, the selected thoughts file
+# 3.1 submits to llm to return a moody, fun, short playlist name
+# 4. submits the same context but now to create a Spotify-api-friendly list of proposed Spotify song name searches
+# 5 iteratively submits the proposed song names to spotify song search api and returns a song list object
+# 6 creates a spotify playlist using the song list object
+
 from src import db
 from src.api import SpotifyAPI
 

@@ -20,9 +20,19 @@ try:
 except Exception as e:
 	raise RuntimeError(f"Missing required Spotify config: {e}")
 
+
 # Logging configuration (no fallbacks, fail if missing)
 try:
 	LOG_LEVEL = config.get('logging', 'level').upper()
 	LOG_FILE = config.get('logging', 'file')
 except Exception as e:
 	raise RuntimeError(f"Missing required logging config: {e}")
+
+# AI Playlist config (optional, but load if present)
+AI_PLAYLIST_PREFIX = config.get('AIPlayList', 'playlist_prefix')
+
+# Google Search API config (no fallbacks, fail if missing)
+try:
+	GOOGLE_SEARCH_API_KEY = config.get('SearchAPI', 'GoogleSearchAPIKey')
+except Exception as e:
+	raise RuntimeError(f"Missing required Google Search API config: {e}")
