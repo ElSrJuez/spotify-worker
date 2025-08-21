@@ -1,0 +1,8 @@
+[spotify]
+# Spotify API credentials (do not commit your real secrets)
+client_id = 
+client_secret = 
+redirect_uri = 
+# Space-separated list of permissions
+scope = playlist-modify-public playlist-modify-private playlist-read-private user-read-private
+token_cache = .spotify_token_cache

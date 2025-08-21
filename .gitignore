@@ -135,6 +135,8 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+
+# Environment and secret files
 .env
 .envrc
 .venv
@@ -143,6 +145,24 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Data and TinyDB files
+
+# Ignore all data files, but keep .gitkeep for folder tracking
+data/
+!data/.gitkeep
+# Ignore TinyDB database file explicitly
+data/spotify_db.json
+
+# Ignore playlist-thoughts scratchpad (see playlist-thoughts/README.md)
+playlist-thoughts/thoughts/
+
+# Do not ignore example env file
+!.env.example
+
+# Ignore canonical config file, but keep example tracked
+config.ini
+!config.ini.example
 
 # Spyder project settings
 .spyderproject
