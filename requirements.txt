@@ -1,4 +1,8 @@
+
+# Root requirements
 requests
-spotipy
-tinydb
 dotenv
+
+# Hierarchical requirements
+-r src/requirements.txt
+-r llm-local/requirements.txt
