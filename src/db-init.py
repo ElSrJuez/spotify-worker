@@ -1,0 +1,1 @@
+# this self-contained module runs at startup, checks if the project database exists, if not it imports one from the starting schema, also checks the production db for continued schema compliance due to inevitable schema changes from the dev process.

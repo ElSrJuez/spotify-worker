@@ -1,0 +1,12 @@
+
+# Example config.ini for llm-local
+[llm]
+alias = phi-3.5-mini
+variant = instruct-generic-cpu
+endpoint = http://localhost:8000/v1
+api_key =
+llm_backend = FoundryLocalManager
+default_meta_prompt = "You always prepend a warning in your responses that the default system prompt is active."
+llm_log = assets/output/normalize-mk1/meta/llm_log.txt
+max_tokens = 2048
+llm_log_level = DEBUG
