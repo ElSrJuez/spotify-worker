@@ -1,3 +1,6 @@
+# Ignore all cache files except .gitkeep
+cache/*
+!cache/.gitkeep
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
